@@ -12,7 +12,8 @@ from utils import  check_accuracy
 import wandb
 import argparse
 import time
-
+import numpy as np
+from timerit import Timerit
 
 def main():
     # Parse arguments
@@ -39,7 +40,7 @@ def main():
     num_classes = 10
     learning_rate = 0.001
     batch_size = 128
-    num_epochs = args.epochs
+    epochs = args.epochs
 
     # Create Transforms
     transform_train = transforms.Compose([
@@ -96,13 +97,15 @@ def main():
 
     # Train
     start_time = time.time()
-    for _ in range(num_epochs):
+    per_epoch_train_duration = []
+    per_epoch_with_val_duration = []
+    for _ in range(epochs):
+        epoch_time = time.time()
         model.train()
         for _, (data, targets) in enumerate(tqdm(train_loader)):
-            # get data to cuda
             data = data.to(device=device)
             targets = targets.to(device=device)
-
+            
             # forward
             output = model(data)
             loss = criterion(output, targets)
@@ -114,15 +117,29 @@ def main():
 
             # gradient descent or adam step
             optimizer.step()
-            
+        per_epoch_train_duration.append(time.time() - epoch_time)
         accuracy = check_accuracy(test_loader, model, device)
+        per_epoch_with_val_duration.append(time.time() - epoch_time)
         print("Accuracy: ", accuracy)
         wandb.log({"accuracy": accuracy})
+    
+        print("Epoch Train Duration Mean: ", np.mean(per_epoch_train_duration))
+    print("Epoch Train-Val Duration Mean: ", np.mean(per_epoch_with_val_duration))
+    print("Epoch Train Duration STD: ", np.std(per_epoch_train_duration))
+    print("Epoch Train-Val Duration STD: ", np.std(per_epoch_with_val_duration))
+    print("Full Train-Only Duration: ", np.sum(per_epoch_train_duration))
 
     print("Training duration: ", time.time() - start_time)
     # Check accuracy
+        # Check accuracy
     print(f"Accuracy on training set: {check_accuracy(train_loader, model, device)*100:.2f}")
+    for _ in Timerit(num=5, verbose=2):
+        check_accuracy(train_loader, model, device)
+
+    # Validation Time using Test Set
     print(f"Accuracy on test set: {check_accuracy(test_loader, model, device)*100:.2f}")
+    for _ in Timerit(num=5, verbose=2):
+        check_accuracy(test_loader, model, device)
 
 
 if __name__ == '__main__':

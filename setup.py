@@ -16,6 +16,7 @@ setup(
         "tqdm~=4.61.0",
         "torchvision~=0.9.1",
         "nltk~=3.6.2",
-        "pandas~=1.1.5"
+        "pandas~=1.1.5",
+        "timerit"
     ],
 )
