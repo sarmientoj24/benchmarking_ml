@@ -110,7 +110,6 @@ def main():
     # Check accuracy
     print(f"Accuracy on training set: {check_accuracy(train_loader, model, device)*100:.2f}")
     for _ in Timerit(num=10, verbose=2):
-        print("Hello")
         check_accuracy(train_loader, model, device)
 
     # Validation Time using Test Set

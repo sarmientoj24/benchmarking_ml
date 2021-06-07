@@ -1,6 +1,6 @@
 import torch
 from utils.dataset import DatasetLoader
-from utils.text_cleaner import TextCleaner
+import os
 
 
 # Check accuracy on training & test to see how good our model
